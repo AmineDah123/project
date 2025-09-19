@@ -15,7 +15,7 @@
     <a class="btn btn-primary me-2" href="#">Sign Up</a>
   </li>
   <li class="nav-item">
-    <a class="btn btn-outline-light" href="#">Login</a>
+    <a class="btn btn-outline-light" href="/project/main/login.php">Login</a>
   </li>
 </ul>
 
