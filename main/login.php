@@ -12,7 +12,7 @@
     <a class="nav-link active text-white" aria-current="page" href="#">PC PARTS</a>
   </li>
   <li class="nav-item ms-auto">
-    <a class="btn btn-primary me-2" href="#">Sign Up</a>
+    <a class="btn btn-primary me-2" href="/project/main/signup.php">Sign Up</a>
   </li>
   <li class="nav-item">
     <a class="btn btn-outline-light" href="#">Login</a>
