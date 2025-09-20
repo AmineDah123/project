@@ -76,7 +76,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST')
             exit;
         }
         else
-        {
+        {     
             echo "<p style='color:red; text-align:center;'>There is no such user! How about trying to sign up?</p>";
         }
 

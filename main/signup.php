@@ -102,6 +102,4 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST')
         echo "<p style='color:red; text-align:center;'>Empty Fields! Be Sure To Fill All Required Fields!</p>";
     }
 }
-
-
 ?>

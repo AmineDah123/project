@@ -1,0 +1,244 @@
+<?php 
+session_start();
+include('connection.php');
+if (empty($_SESSION['username']) || empty($_SESSION['email']) || empty($_SESSION['password'])) {
+    header("Location: login.php");
+    exit;
+}
+
+$idcom = connexpdo('pc');
+if ($idcom)
+{
+    $req = "SELECT id_user from users WHERE (email = :email);";
+    $stmt = $idcom->prepare($req);
+    $stmt->execute([
+        ':email' => $_SESSION['email']
+    ]);
+
+    if ($stmt->rowCount() > 0)
+    {
+        $id = $stmt->fetch(PDO::FETCH_ASSOC);
+        $id_user = $id['id_user'];
+    }
+}
+
+// MOVED BUTTON LOGIC HERE - TO THE TOP
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add_to_cart']) && !empty($_POST['id_part']))
+{
+    $id_part = (int)$_POST['id_part'];
+    if ($idcom)
+    {
+        $stmt = $idcom->prepare("SELECT id_part FROM parts WHERE id_part = ?");
+        $stmt->execute([$id_part]);
+
+        if ($stmt->rowCount() > 0)
+        {
+            $req = 'SELECT * FROM cart WHERE (id_part = :id_part AND id_user = :id_user)';
+            $stmt = $idcom->prepare($req);
+            
+            $stmt->execute([
+                ':id_part' => $id_part,
+                ':id_user' => $id_user
+            ]);
+            if ($stmt->rowCount() > 0)
+            {
+                $row = $stmt->fetch(PDO::FETCH_ASSOC);
+                $quant = $row['quantity'] + 1;
+                
+                $req = 'UPDATE cart SET quantity = :quantity WHERE (id_user = :id_user AND id_part = :id_part)';
+                $stmt = $idcom->prepare($req);
+
+                $stmt->execute([
+                    ':quantity' => $quant,
+                    ':id_user' => $id_user,
+                    ':id_part' => $id_part
+                ]);
+            }
+            else
+            {
+                $req = 'SELECT * FROM parts WHERE( id_part = :id_part)';
+                $stmt = $idcom->prepare($req);
+
+                $stmt->execute([
+                    ':id_part' => $id_part
+                ]);
+
+                if ($stmt->rowCount() > 0)
+                {
+                    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+                }
+
+                $req = 'INSERT INTO cart(id_user,id_part,quantity) VALUES(:id_user,:id_part,:quantity)';
+                $stmt = $idcom->prepare($req);
+
+                $quantity = 1;
+
+                $stmt->execute([
+                    ':id_user' => $id_user,
+                    ':id_part' => $id_part,
+                    ':quantity' => $quantity,
+                ]);
+
+            }
+
+        }        
+    }
+    
+    // Redirect to prevent form resubmission on refresh
+    header("Location: " . $_SERVER['PHP_SELF']);
+    exit;
+}
+
+if ($idcom)
+{
+    $req = "SELECT * FROM parts";
+    $stmt = $idcom->prepare($req);
+    $stmt->execute();
+
+    if ($stmt->rowCount() > 0)
+    {
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+    else
+    {
+        $rows = []; // Initialize as empty array
+    }
+}
+else
+{
+    $rows = []; // Initialize as empty array if no connection
+}
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>PC PARTS</title>
+</head>
+<body>
+<ul class="nav p-2" style="background-color: grey;">
+  <li class="nav-item">
+    <a class="nav-link active text-white" aria-current="page" href="#">PC PARTS</a>
+  </li>
+  <?php if (isset($_SESSION['username']) && isset($_SESSION['email']) && isset($_SESSION['password'])) {?>         
+    <li class="nav-item ms-auto">
+        <a class="nav-link active text-white" aria-current="page" href="#"><?php echo $_SESSION['email'];?></a>
+    </li>
+    <li class="nav-item">
+        <a class="btn btn-outline-light" href="./logout.php" >Logout</a>
+    </li>    
+  <?php } ?>
+</ul>
+
+<div class="container-fluid mt-4">
+    <div class="row">
+        <!-- Cart Box on Left -->
+        <div class="col-3">
+            <div class="border p-3" style="height: 80vh; min-height: 400px;">
+                <h4 class="text-center">My Cart</h4>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Item</th>
+                            <th>Quantity</th>
+                            <th>Price</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php
+                        $req = 'SELECT p.product AS product, c.quantity AS quantity, p.price AS price 
+                        FROM cart c
+                        JOIN parts p ON p.id_part = c.id_part
+                        WHERE c.id_user = :id_user';
+    
+                        $stmt = $idcom->prepare($req);
+                        $stmt->execute([':id_user' => $id_user]);
+                        if ($stmt->rowCount() > 0)
+                        {
+                            $cart_rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+                            foreach($cart_rows as $row)
+                            {
+                                $price = $row['price'] * $row['quantity'];
+                                ?><tr>
+                                    <td><?php echo $row['product'];?></td>
+                                    <td><?php echo $row['quantity'];?></td>
+                                    <td><?php echo $price ?></td>
+                                </tr><?php
+                            }
+                        }
+                        ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Right content -->
+        <div class="col-9">
+    <div class="d-flex justify-content-center mt-3">
+        <form class="border p-3 rounded text-center" method="POST">
+            <!-- Radio buttons on the same line -->
+            <label class="me-2">All:</label>
+            <input type="radio" name="category" value="All" class="me-3" >
+            
+            <label class="me-2">Desktop:</label>
+            <input type="radio" name="category" value="Desktop" class="me-3">
+            
+            <label class="me-2">Laptop:</label>
+            <input type="radio" name="category" value="Laptop" class="me-3">
+            
+            <label class="me-2">Peripherals:</label>
+            <input type="radio" name="category" value="Peripherals">
+
+            <div class="mt-3">
+                <button type="submit" class="btn btn-secondary">Confirm</button>
+            </div>
+        </form>
+    </div>
+
+    <?php  
+    if ($_SERVER['REQUEST_METHOD'] == 'POST')
+    {
+        if (isset($_POST['category']) && $_POST['category'] != 'All' )
+        {
+            $category = $_POST['category'];
+            if ($idcom)
+            {
+                $req = "SELECT * FROM parts WHERE (category = :category)";
+                $stmt = $idcom->prepare($req);
+                $stmt->execute([
+                    ':category' => $category
+                ]);
+
+                if ($stmt->rowCount() > 0)
+                {
+                    $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                }
+            }
+        }
+    }
+    ?>
+    <div id="parts-container" class="mt-4 d-flex flex-wrap" style="gap: 15px;">
+    <?php if (!empty($rows)): ?>
+        <?php foreach($rows as $row): ?>
+            <div class="card" style="min-height: 100px; flex: 0 0 calc(33.33% - 10px);">
+                <div class="card-body">
+                    Product: <?php echo $row['product']; ?><br>
+                    Quantity: <?php echo $row['quantity']; ?><br>
+                    Price: <?php echo $row['price']; ?>$<br>
+                    <form method="POST">
+                        <input type="hidden" name="id_part" value="<?php echo htmlspecialchars($row['id_part']); ?>">
+                        <button type="submit" name="add_to_cart">Add To Cart</button>
+                    </form>
+                </div>
+            </div>
+        <?php endforeach; ?>
+    <?php endif; ?>
+</div>
+    </div>
+</div>
+</body>
+</html>
