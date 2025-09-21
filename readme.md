@@ -26,6 +26,15 @@ CREATE TABLE cart(
     FOREIGN KEY (id_part) REFERENCES parts(id_part) ON DELETE CASCADE
 );
 
+CREATE TABLE purchase(
+	id_purchase INT AUTO_INCREMENT PRIMARY KEY,
+	id_user INT NOT NULL,
+	id_part INT NOT NULL,
+    quantity INT NOT NULL
+);
+
+select * from purchase;
+
 drop table parts;
 
 select * from parts;
