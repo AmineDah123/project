@@ -175,6 +175,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['purchase_cart']))
                 ':id_part' => $c['id_part']
             ]);
 
+            $req = 'INSERT INTO purchase(id_user,id_part,quantity) VALUES (:id_user,:id_part,:quantity)';
+            $add_purchase = $idcom->prepare($req);
+            $add_purchase->execute([
+                ':id_user' => $id_user,
+                ':id_part' => $c['id_part'],
+                ':quantity' => $c['quantity']
+            ]);
+
+
         }
 
     }
