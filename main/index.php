@@ -42,17 +42,39 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add_to_cart']) && !emp
             ]);
             if ($stmt->rowCount() > 0)
             {
-                $row = $stmt->fetch(PDO::FETCH_ASSOC);
-                $quant = $row['quantity'] + 1;
-                
-                $req = 'UPDATE cart SET quantity = :quantity WHERE (id_user = :id_user AND id_part = :id_part)';
-                $stmt = $idcom->prepare($req);
 
-                $stmt->execute([
-                    ':quantity' => $quant,
-                    ':id_user' => $id_user,
+                //Add a quantity checker so the user can't add more than the stock
+                $req = 'SELECT quantity FROM parts WHERE (id_part = :id_part)';
+                $stmt_quant = $idcom->prepare($req);
+
+                $stmt_quant->execute([
                     ':id_part' => $id_part
                 ]);
+                if ($stmt_quant->rowCount() > 0)
+                {
+                    $q = $stmt_quant->fetch(PDO::FETCH_ASSOC);
+                }
+
+                $row = $stmt->fetch(PDO::FETCH_ASSOC);
+                $quant = $row['quantity'] + 1;
+
+                if ($quant <= $q['quantity'])
+                {
+                    $req = 'UPDATE cart SET quantity = :quantity WHERE (id_user = :id_user AND id_part = :id_part)';
+                    $stmt = $idcom->prepare($req);
+
+                    $stmt->execute([
+                        ':quantity' => $quant,
+                        ':id_user' => $id_user,
+                        ':id_part' => $id_part
+                    ]);
+                }
+                else
+                {
+                    echo "<br>You have selected the maximum amount available!";
+                }
+
+                
             }
             else
             {
@@ -85,7 +107,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add_to_cart']) && !emp
         }        
     }
     
-    // Redirect to prevent form resubmission on refresh
     header("Location: " . $_SERVER['PHP_SELF']);
     exit;
 }
@@ -102,12 +123,12 @@ if ($idcom)
     }
     else
     {
-        $rows = []; // Initialize as empty array
+        $rows = []; 
     }
 }
 else
 {
-    $rows = []; // Initialize as empty array if no connection
+    $rows = []; 
 }
 ?>
 <!DOCTYPE html>
