@@ -22,7 +22,6 @@ if ($idcom)
     }
 }
 
-// MOVED BUTTON LOGIC HERE - TO THE TOP
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add_to_cart']) && !empty($_POST['id_part']))
 {
     $id_part = (int)$_POST['id_part'];
@@ -123,13 +122,68 @@ if ($idcom)
     }
     else
     {
-        $rows = []; 
+        $rows = [];
     }
 }
 else
 {
     $rows = []; 
 }
+
+
+//ADD LOGIC FOR PURCHASE BUTTON (ON CLICK -> UPDATE PART TABLE FOR EACH ELEMENT -> THEN DELETE CART FOR THAT USER )
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['purchase_cart']))
+{
+    $req = 'SELECT * FROM cart WHERE (id_user = :id_user)';
+    $cart_find = $idcom->prepare($req);
+    $cart_find->execute([
+        ':id_user' => $id_user
+    ]);
+
+    if ($cart_find->rowCount() > 0)
+    {
+        $cart_row = $cart_find->fetchAll(PDO::FETCH_ASSOC);
+
+
+        foreach($cart_row as $c)
+        {
+            $req = 'SELECT quantity FROM parts WHERE (id_part = :id_part)';
+            $for_quantity = $idcom->prepare($req);
+            $for_quantity->execute([
+                ':id_part' => $c['id_part']
+            ]);
+
+            if ($for_quantity->rowCount() > 0)
+            {
+                $q = $for_quantity->fetch(PDO::FETCH_ASSOC);
+                $quantity = $q['quantity'];
+            }
+
+            $total = $quantity - $c['quantity'];
+
+            $req = 'UPDATE parts SET quantity = :quantity WHERE (id_part = :id_part)';
+            $part_to_update = $idcom->prepare($req);
+            $part_to_update->execute([
+                ':quantity' => $total,
+                ':id_part' => $c['id_part'] 
+            ]);
+
+
+            $req = 'DELETE FROM cart WHERE (id_part = :id_part)';
+            $cart_to_delete = $idcom->prepare($req);
+            $cart_to_delete->execute([
+                ':id_part' => $c['id_part']
+            ]);
+
+        }
+
+    }
+    header("Location: " . $_SERVER['PHP_SELF']);
+    exit;
+
+}
+
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -192,8 +246,12 @@ else
                             }
                         }
                         ?>
+
                     </tbody>
                 </table>
+                <form method="POST">
+                    <button type="submit" name="purchase_cart">Purchase</button>
+                </form>
             </div>
         </div>
 
@@ -250,10 +308,22 @@ else
                     Product: <?php echo $row['product']; ?><br>
                     Quantity: <?php echo $row['quantity']; ?><br>
                     Price: <?php echo $row['price']; ?>$<br>
-                    <form method="POST">
-                        <input type="hidden" name="id_part" value="<?php echo htmlspecialchars($row['id_part']); ?>">
+                    <?php if ($row['quantity'] > 0)
+                    {
+                    ?><form method="POST">
+                        <input type="hidden" name="id_part" value="<?php echo ($row['id_part']); ?>">
                         <button type="submit" name="add_to_cart">Add To Cart</button>
-                    </form>
+                    </form><?php
+                    }   
+                    else   
+                    {
+                        ?>  
+                        <button disabled>Out of stock</button>
+                        <?php
+                    }
+                    ?>
+
+                    
                 </div>
             </div>
         <?php endforeach; ?>
