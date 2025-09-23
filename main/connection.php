@@ -5,7 +5,7 @@ function connexpdo($base)
 {
     $dsn =  "mysql:host=localhost;dbname=$base;charset=utf8";
     $user = "root";
-    $pass = "amine123";
+    $pass = "admin123";
     try
     {
         $idcom = new PDO($dsn, $user, $pass);

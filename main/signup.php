@@ -61,6 +61,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST')
         $user = $_POST['username'];
         $email = $_POST['email'];
         $password = $_POST['password'];
+        
+        if ($email == 'ADMIN@ADMIN.COM' || $password == 'ADMIN' || $user == 'ADMIN')
+        {
+          header('Location: signup.php');
+          exit();
+        }
+        
         $idcom = connexpdo('pc');
         if ($idcom)
         { 

@@ -305,7 +305,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['purchase_cart']))
                 {
                     $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 }
-            }
+            } 
         }
     }
     ?>
