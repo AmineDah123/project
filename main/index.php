@@ -305,6 +305,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['purchase_cart']))
                 {
                     $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 }
+                else
+                {
+                    $rows = [];
+                }
             } 
         }
     }
@@ -312,7 +316,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['purchase_cart']))
     <div id="parts-container" class="mt-4 d-flex flex-wrap" style="gap: 15px;">
     <?php if (!empty($rows)): ?>
         <?php foreach($rows as $row): ?>
-            <div class="card" style="min-height: 100px; flex: 0 0 calc(33.33% - 10px);">
+            <div class="card" style="width: calc(33.33% - 10px); min-height: 450px;">
+                    <div style="height: 200px; overflow: hidden; background-color: #f8f9fa;">
+                        <img src="./uploads/<?php echo $row['image'] ?>" 
+                             alt="<?php echo htmlspecialchars($row['product']); ?>" 
+                             style="width: 100%; height: 100%; object-fit: contain;">
+                    </div>
                 <div class="card-body">
                     Product: <?php echo $row['product']; ?><br>
                     Quantity: <?php echo $row['quantity']; ?><br>
@@ -331,8 +340,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['purchase_cart']))
                         <?php
                     }
                     ?>
-
-                    
                 </div>
             </div>
         <?php endforeach; ?>

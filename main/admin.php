@@ -6,6 +6,43 @@ if ($_SESSION['username'] != 'ADMIN' || $_SESSION['email'] != 'ADMIN@ADMIN.COM' 
     exit;
 }
 include("connection.php");
+$idcom = connexpdo('pc');
+if (!$idcom)
+{
+    exit();
+}
+
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && !(isset($_POST['update_part'])))
+{
+    if (!empty($_POST['product']) && !empty($_POST['price'] && !empty($_POST['category'])) 
+        && !empty($_POST['quantity']) && isset($_FILES['image']) 
+        && $_FILES['image']['error'] == UPLOAD_ERR_OK )
+    {
+        $product = $_POST['product'];
+        $quantity = $_POST['quantity'];
+        $price = $_POST['price'];
+        $category = $_POST['category'];
+
+        $imageName = $_FILES['image']['name'];
+        $tmpName = $_FILES['image']['tmp_name'];
+
+        move_uploaded_file($tmpName,"uploads/" . basename($imageName));
+
+        $req = 'INSERT INTO parts(product,quantity,category,price,image)
+        VALUES (:product,:quantity,:category,:price,:img)';
+        $stmt = $idcom->prepare($req);
+        $stmt->execute([
+            ':product' => $product,
+            ':quantity' => $quantity,
+            ':category' => $category,
+            ':price' =>  $price,
+            ':img' => $imageName
+        ]);
+
+    }
+
+
+}
 
 
 ?>
@@ -31,15 +68,48 @@ include("connection.php");
     </li>    
   <?php } ?>
 </ul>
-
-
+  <!-- Disabled for now fix later! -->
     <form method="POST">
-        <button type="submit" name="insert_product">Insert</button>
+        <button type="submit" name="update_part" disabled>Update</button>
     </form>
-    <form method="POST">
-        <button type="submit" name="update_product">Update</button>
-    </form>
+    <br>
+    <br>
+    <form method="POST" enctype="multipart/form-data" class="container mt-5 p-4 border rounded bg-light shadow-sm">
+  <h3 class="mb-4" style="text-align:center">Add New Product</h3>
 
+  <div class="mb-3">
+    <label for="product" class="form-label">Product</label>
+    <input type="text" class="form-control" id="product" name="product" placeholder="Enter product name" required>
+  </div>
+
+  <div class="mb-3">
+    <label for="quantity" class="form-label">Quantity</label>
+    <input type="number" class="form-control" id="quantity" name="quantity" placeholder="Enter quantity" required>
+  </div>
+
+  <div class="mb-3">
+  <label for="category" class="form-label">Category</label>
+    <select class="form-select" id="category" name="category" required>
+        <option value="" disabled selected>Select category</option>
+        <option value="Desktop">Desktop</option>
+        <option value="Laptop">Laptop</option>
+        <option value="Peripherals">Peripherals</option>
+    </select>
+    </div>
+
+
+  <div class="mb-3">
+    <label for="price" class="form-label">Price</label>
+    <input type="number" step="0.01" class="form-control" id="price" name="price" placeholder="Enter price" required>
+  </div>
+
+  <div class="mb-3">
+    <label for="image" class="form-label">Image</label>
+    <input type="file" class="form-control" id="image" name="image" accept="image/*" required>
+  </div>
+
+  <button type="submit" name="add_product" class="btn btn-primary">Add Product</button>
+</form>
 
 </body>
 </html>
