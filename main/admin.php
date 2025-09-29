@@ -81,7 +81,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add_product'])) {
 
     <!-- Add Product Form -->
     <form method="POST" enctype="multipart/form-data" class="container mt-5 p-4 border rounded bg-light shadow-sm">   
-        <h3 class="mb-4 text-center">Add New Product</h3>    
+        <h3 class="mb-4 text-center">Add New Product</h3>
 
         <div class="mb-3">     
             <label for="product" class="form-label">Product</label>     

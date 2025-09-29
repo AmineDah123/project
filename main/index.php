@@ -5,6 +5,11 @@ if (empty($_SESSION['username']) || empty($_SESSION['email']) || empty($_SESSION
     header("Location: login.php");
     exit;
 }
+if ($_SESSION['username'] == 'ADMIN' || $_SESSION['email'] == 'ADMIN@ADMIN.COM'){     
+    header("Location: logout.php");     
+    exit; 
+} 
+
 
 $idcom = connexpdo('pc');
 if ($idcom)
