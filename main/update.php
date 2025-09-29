@@ -37,6 +37,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['modify_product']) && !
     exit();
 }
 
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['delete_product']) && !empty($_POST['id_part']))
+{
+    $id_part = (int) $_POST['id_part'];
+
+    $req = 'DELETE FROM parts WHERE (id_part = :id_part)';
+    $stmt = $idcom->prepare($req);
+    $stmt->execute([
+        ':id_part' => $id_part
+    ]);
+}
 ?>
 <!DOCTYPE html> 
 <html lang="en"> 
@@ -93,6 +103,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['modify_product']) && !
                     <form method="POST">
                         <input type="hidden" name="id_part" value="<?php echo ($row['id_part']); ?>">
                         <button type="submit" name="modify_product">Modify</button>
+                    </form>
+                    <br>
+                    <form method="POST">
+                        <input type="hidden" name="id_part" value="<?php echo $row['id_part']; ?>">
+                        <button type="submit" name="delete_product">Delete</button>
                     </form>
                 </div>
             </div>

@@ -15,8 +15,8 @@ if (!$idcom) {
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add_product'])) {     
     if (!empty($_POST['product']) && !empty($_POST['price']) && !empty($_POST['category'])         
         && !empty($_POST['quantity']) && isset($_FILES['image'])         
-        && $_FILES['image']['error'] ==  )     
-    {         UPLOAD_ERR_OK
+        && $_FILES['image']['error'] == UPLOAD_ERR_OK )     
+    {         
         $product = $_POST['product'];         
         $quantity = $_POST['quantity'];         
         $price = $_POST['price'];         
